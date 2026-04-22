@@ -5,8 +5,10 @@ import logging
 import sys
 from pathlib import Path
 
-# Create logs directory if it doesn't exist
-logs_dir = Path("logs")
+# Anchor log directory to project root (parent of this file's directory),
+# so the log location is the same regardless of where the app is launched from.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+logs_dir = _PROJECT_ROOT / "logs"
 logs_dir.mkdir(exist_ok=True)
 
 # Configure logging format

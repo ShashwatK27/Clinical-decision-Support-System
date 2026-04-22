@@ -1,0 +1,23 @@
+{
+  "ibuprofen": {
+    "class": "NSAID",
+    "conditions": ["pain", "inflammation"]
+  },
+  "ciprofloxacin": {
+    "class": "antibiotic",
+    "conditions": ["bacterial infection"]
+  },
+  "metformin": {
+    "class": "antidiabetic",
+    "conditions": ["diabetes"]
+  },
+  "paracetamol": {
+    "class": "analgesic",
+    "conditions": ["fever", "pain"]
+  },
+  "amoxicillin": {
+    "class": "antibiotic",
+    "conditions": ["bacterial infection"]
+  }
+}
+

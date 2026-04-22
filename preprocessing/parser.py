@@ -8,7 +8,7 @@ def clean_text(text):
 
 def extract_medication_block(text):
     """
-    Extract only the medications section
+    Extract only the medications section from a structured prescription.
     """
     match = re.search(r"medications:(.*?)(signature:|$)", text, re.DOTALL)
     if match:
@@ -18,72 +18,91 @@ def extract_medication_block(text):
 
 def extract_medications(text):
     """
-    Extract each medication line
+    Extract each medication line from a structured medications block.
     """
     meds_block = extract_medication_block(text)
-
-    # Split using "-"
     meds = re.split(r"- ", meds_block)
-
-    # Clean empty entries
     meds = [m.strip() for m in meds if m.strip()]
-
     return meds
 
 
-
 STOPWORDS = {
-    "take", "at", "every", "twice", "daily",
-    "once", "bedtime", "hours", "mg", "mcg", "g",
-    "po", "bid", "qd", "qhs", "q4h", "tsp", "tbsp",
-    "tablet", "tablets", "tab", "capsule", "capsules",
+    "a", "an", "of",
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "take", "takes", "taking", "taken", "at", "every", "twice", "daily",
+    "once", "bedtime", "hours", "mg", "mcg", "g", "kg", "iu",
+    "po", "bid", "qd", "qhs", "q4h", "q6h", "q8h", "q12h",
+    "tsp", "tbsp", "prn", "tid", "qid", "stat", "ac", "pc",
+    "tablet", "tablets", "tab", "capsule", "capsules", "cap",
+    "tabs", "caplet", "caplets", "pill", "pills",
     "ml", "dr", "spray", "drop", "drops", "cream", "patch",
-    "tablet", "solution", "suspension", "dose", "doses", "prn"
+    "solution", "suspension", "dose", "doses", "puff", "puffs",
+    "inhaler", "injection", "ointment", "gel", "syrup", "liquid",
+    "oral", "topical", "intravenous", "subcutaneous", "intramuscular",
+    "extended", "release", "immediate", "delayed", "sustained",
+    "morning", "evening", "night", "noon", "afternoon",
+    "before", "after", "with", "without", "food", "meals", "meal",
+    "directed", "prescribed", "needed", "indicated",
+    "patient", "female", "male", "woman", "man", "boy", "girl",
+    "old", "year", "years", "age", "aged", "adult", "elderly",
+    "presenting", "presents", "presented", "diagnosed", "diagnosis",
+    "prescribed", "prescription", "start", "started", "continue",
+    "initiated", "administered", "given", "indicated", "refer",
+    "follow", "review", "monitor", "check", "assess", "counsel",
+    "complaint", "history", "known", "case", "admitted", "discharged",
+    "management", "treatment", "therapy", "regimen", "course",
+    "pain", "fever", "anxiety", "depression", "nausea", "vomiting",
+    "infection", "inflammation", "reflux", "diabetes", "hypertension",
+    "cholesterol", "asthma", "allergy", "allergies", "insomnia",
+    "neuropathy", "seizure", "seizures", "disorder", "disease",
+    "condition", "symptom", "symptoms", "complaint", "complaints",
+    "the", "and", "for", "due", "from", "this", "that", "which",
+    "has", "have", "had", "was", "were", "are", "its", "their",
+    "all", "also", "may", "can", "should", "will", "not", "both",
+    "per", "use", "used", "using", "add", "added", "new", "start",
+    "day", "days", "week", "weeks", "month", "months",
+    "back", "well", "good", "better", "worse", "time", "times",
 }
 
 
 def extract_drug_names(meds):
+    """
+    Pull candidate drug-name tokens from a list of medication strings.
+
+    Preserves hyphens so compound names like 'co-amoxiclav' are not destroyed.
+    """
     drugs = []
 
     for med in meds:
-        words = med.split()
+        for word in med.split():
+            word = re.sub(r"[^a-zA-Z\-]", "", word.lower()).strip("-")
 
-        for word in words:
-            # clean word
-            word = re.sub(r'[^a-zA-Z]', '', word.lower())
-
-            if len(word) < 3:
-                continue
-
-            if word in STOPWORDS:
+            if len(word) < 3 or word in STOPWORDS:
                 continue
 
             drugs.append(word)
 
-    return list(set(drugs))  # remove duplicates
+    return list(set(drugs))
 
 
-
-
-
+def parse_freetext(text):
+    """
+    Treat the full input as one medication line for unstructured text.
+    """
+    return extract_drug_names([text])
 
 
 def parse_prescription(text):
     text = clean_text(text)
-
-    # Try structured extraction first
     meds = extract_medications(text)
 
-    # 🔥 If no meds found → fallback to raw text
-    if not meds:
+    if meds:
+        drugs = extract_drug_names(meds)
+    else:
         meds = [text]
-
-    drugs = extract_drug_names(meds)
+        drugs = parse_freetext(text)
 
     return {
         "medications": meds,
-        "drugs": drugs
+        "drugs": drugs,
     }
-
-
-

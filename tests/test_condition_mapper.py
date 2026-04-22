@@ -12,9 +12,9 @@ class TestConditionMapper(unittest.TestCase):
         self.assertTrue(any(item["condition_label"] == "inflammation" for item in result))
 
     def test_predict_includes_vector_conditions_when_present(self):
-        meta = {"conditions": ["proton pump inhibitor", "other condition"]}
+        meta = {"conditions": ["possible ulcer", "other condition"]}
         result = self.mapper.predict(["unknown-drug"], vector_results=[(meta, 0.8)])
-        self.assertTrue(any(item["condition_label"] == "proton pump inhibitor" for item in result))
+        self.assertTrue(any(item["condition_label"] == "possible ulcer" for item in result))
         self.assertTrue(any(item["condition_label"] == "other condition" for item in result))
 
     def test_predict_filters_allergen_noise_from_vector_results(self):

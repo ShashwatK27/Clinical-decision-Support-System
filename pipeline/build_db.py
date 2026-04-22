@@ -1,9 +1,11 @@
 
 import sys
+import json
 from pathlib import Path
 
-# Add parent directory to path so imports work
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add parent directory to path so imports work regardless of cwd
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
 
 from datasets import load_from_disk
 from preprocessing.parser import parse_prescription
@@ -12,114 +14,97 @@ from embeddings.embedding import get_embedding
 from vector_db.store import VectorStore
 from mapping.fuzzy_match import correct_drug_list
 from mapping.condition_mapper import ConditionMapper
-from collections import Counter
-
-# -------------------------------
-# LOAD DATASET
-# -------------------------------
-dataset = load_from_disk("data/medical_dataset")
 
 store = VectorStore()
 mapper = ConditionMapper()
 
 print("** Building vector database...\n")
+indexed = 0
+skipped = 0
 
+# ---------------------------------------------------------------
+# SOURCE 1: Real medical dataset (first 500 samples)
+# ---------------------------------------------------------------
+print("[1/2] Indexing real dataset...")
+try:
+    dataset = load_from_disk(str(_PROJECT_ROOT / "data" / "medical_dataset"))
+    sample_count = min(500, len(dataset["train"]))
+    for sample in dataset["train"].select(range(sample_count)):
+        raw_text = sample["ground_truth"]
+        parsed = parse_prescription(raw_text)
+        valid_drugs = correct_drug_list(parsed["drugs"])
 
-# -------------------------------
-# BUILD VECTOR DATABASE (Updated)
-# -------------------------------
-for sample in dataset["train"].select(range(500)):
-    raw_text = sample["ground_truth"]
-    parsed = parse_prescription(raw_text)
-    valid_drugs = correct_drug_list(parsed["drugs"])
-    
-    if not valid_drugs:
-        continue
-
-    # NEW: Pre-calculate the conditions for this case using the mapper
-    # This "hydrates" the metadata so the search function can find it later
-    case_conditions = []
-    for drug in valid_drugs:
-        if drug in mapper.knowledge_base:
-            case_conditions.extend(mapper.knowledge_base[drug])
-
-    cleaned_meds = clean_medications(parsed["medications"])
-    embedding_input = build_embedding_text(valid_drugs, cleaned_meds)
-    vector = get_embedding(embedding_input)
-    
-    # Updated Metadata
-    metadata = {
-        "drugs": valid_drugs,
-        "conditions": list(set(case_conditions)), # CRITICAL: Store the labels here!
-        "original_text": raw_text
-    }
-    store.add(vector, metadata)
-
-print("** Vector DB ready!\n")
-
-# Save the vector store to disk for use in the web app
-store_path = store.save("vector_store.pkl")
-print(f"** Vector store saved to: {store_path}")
-print(f"   - {len(store.vectors)} vectors")
-print(f"   - {len(store.metadata)} metadata entries\n")
-
-
-# -------------------------------
-# INTERACTIVE CDSS
-# -------------------------------
-while True:
-    print("\n-----------------------------------")
-    user_input = input("Enter prescription (or 'exit'): ")
-
-    if user_input.lower() == "exit":
-        print("👋 Exiting CDSS...")
-        break
-
-    # 🔹 Parse user input
-    result = parse_prescription(user_input)
-
-    # 🔥 Fuzzy correction
-    result["drugs"] = correct_drug_list(result["drugs"])
-
-    if not result["drugs"]:
-        print("⚠️ No drugs detected!")
-        continue
-
-    # 🔹 Clean + prepare text
-    cleaned_meds = clean_medications(result["medications"])
-    query_text = build_embedding_text(result["drugs"], cleaned_meds)
-
-    # 🔹 Embedding
-    query_vector = get_embedding(query_text)
-
-    # 🔹 Search similar cases
-    results = store.search(query_vector)
-
-    # -------------------------------
-    # CONDITION PREDICTION
-    predictions = mapper.predict(result["drugs"], vector_results=results)
-
-    print("\n🧠 Predicted conditions:")
-    if not predictions:
-        print("- Low confidence. No strong matches found.")
-    else:
-        for item in predictions[:5]:
-            print(f"- {item['condition_label']} (confidence: {item['confidence']})")
-
-    # -------------------------------
-    # DISPLAY RESULTS
-    # -------------------------------
-    print("\n🔍 Similar Cases:\n")
-
-    for meta, score in results:
-        if score < 0.65:
+        if not valid_drugs:
+            skipped += 1
             continue
 
-        if isinstance(meta, dict):
-            drugs_found = ", ".join(meta.get("drugs", []))
-            print(f"Case Drugs: {drugs_found}")
-            print(f"Original text: {meta.get('original_text', '')}")
-        else:
-            print(f"Case metadata: {meta}")
+        case_conditions = []
+        for drug in valid_drugs:
+            if drug in mapper.knowledge_base:
+                case_conditions.extend(mapper.knowledge_base[drug])
 
-        print(f"Similarity: {score:.3f}\n")
+        cleaned_meds = clean_medications(parsed["medications"])
+        embedding_input = build_embedding_text(valid_drugs, cleaned_meds)
+        vector = get_embedding(embedding_input)
+
+        store.add(vector, {
+            "drugs": valid_drugs,
+            "conditions": list(set(case_conditions)),
+            "original_text": raw_text,
+            "source": "real",
+        })
+        indexed += 1
+
+    print(f"   Real dataset: {indexed} cases indexed, {skipped} skipped.\n")
+except Exception as e:
+    print(f"   WARNING: Could not load real dataset ({e}). Skipping.\n")
+
+# ---------------------------------------------------------------
+# SOURCE 2: Synthetic cases
+# ---------------------------------------------------------------
+synthetic_path = _PROJECT_ROOT / "data" / "synthetic_cases.json"
+if not synthetic_path.exists():
+    print("[2/2] Synthetic data not found — generating now...")
+    # Auto-generate if the file doesn't exist
+    sys.path.insert(0, str(_PROJECT_ROOT / "scripts"))
+    from generate_synthetic_data import generate_dataset
+    cases = generate_dataset(2000)
+    synthetic_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(synthetic_path, "w", encoding="utf-8") as f:
+        json.dump(cases, f, indent=2, ensure_ascii=False)
+    print(f"   Generated {len(cases)} synthetic cases.\n")
+
+print("[2/2] Indexing synthetic cases...")
+with open(synthetic_path, "r", encoding="utf-8") as f:
+    synthetic_cases = json.load(f)
+
+syn_indexed = 0
+for case in synthetic_cases:
+    drugs = case.get("drugs", [])
+    conditions = case.get("conditions", [])
+    raw_text = case.get("ground_truth", "")
+
+    if not drugs:
+        continue
+
+    embedding_input = " ".join(drugs) + " " + " ".join(conditions)
+    vector = get_embedding(embedding_input)
+
+    store.add(vector, {
+        "drugs": drugs,
+        "conditions": conditions,
+        "original_text": raw_text,
+        "source": "synthetic",
+    })
+    syn_indexed += 1
+
+print(f"   Synthetic: {syn_indexed} cases indexed.\n")
+
+# ---------------------------------------------------------------
+# SAVE
+# ---------------------------------------------------------------
+store_path = store.save(str(_PROJECT_ROOT / "vector_store"))
+print(f"** Vector store saved to: {store_path}")
+print(f"   - {len(store.vectors)} total vectors")
+print(f"   - Real: {indexed}  |  Synthetic: {syn_indexed}")
+print("\nDone! You can now run: streamlit run streamlit_app.py\n")

@@ -1,7 +1,15 @@
 """
-End-to-end test suite for CDSS system
-Tests the complete pipeline: parsing → fuzzy matching → embedding → prediction
+End-to-end test suite for CDSS system — converted to proper unittest.
+Tests the complete pipeline: parsing → fuzzy matching → embedding → prediction.
+
+Run with:
+    python -m pytest test_e2e.py -v
+    # or
+    python -m unittest test_e2e -v
 """
+
+import unittest
+import numpy as np
 
 from preprocessing.parser import parse_prescription
 from preprocessing.cleaner import clean_medications, build_embedding_text
@@ -9,145 +17,158 @@ from mapping.fuzzy_match import correct_drug_list
 from mapping.condition_mapper import ConditionMapper
 from embeddings.embedding import get_embedding
 from vector_db.store import VectorStore
-import numpy as np
 
-print("=" * 70)
-print("🧪 E2E TEST SUITE: CDSS System")
-print("=" * 70)
 
-mapper = ConditionMapper()
+class TestFuzzyMatching(unittest.TestCase):
+    """Issue #7 — typo correction via difflib fuzzy matching."""
 
-# ========================================
-# TEST 1: Fuzzy Matching (Typo Tolerance)
-# ========================================
-print("\n📌 TEST 1: Fuzzy Matching — Typo Tolerance")
-print("-" * 70)
+    def test_typo_iboprofen(self):
+        result = correct_drug_list(["iboprofen"])
+        self.assertTrue(len(result) > 0, "Should fuzzy-match 'iboprofen' to 'ibuprofen'")
+        self.assertEqual(result[0], "ibuprofen")
 
-test_cases_fuzzy = [
-    ("iboprofen", "ibuprofen", True),  # typo
-    ("metaformin", "metformin", True),  # typo
-    ("ciprofoxacin", "ciprofloxacin", True),  # typo
-    ("paracetamol", "paracetamol", True),  # exact
-]
+    def test_typo_metaformin(self):
+        result = correct_drug_list(["metaformin"])
+        self.assertTrue(len(result) > 0, "Should fuzzy-match 'metaformin' to 'metformin'")
+        self.assertEqual(result[0], "metformin")
 
-for input_drug, expected, should_match in test_cases_fuzzy:
-    corrected = correct_drug_list([input_drug])
-    matched = len(corrected) > 0
-    status = "✅ PASS" if matched == should_match else "❌ FAIL"
-    print(f"{status}: '{input_drug}' → {corrected if corrected else 'NOT MATCHED'}")
+    def test_exact_match(self):
+        result = correct_drug_list(["paracetamol"])
+        self.assertIn("paracetamol", result)
 
-# ========================================
-# TEST 2: Drug Extraction from Text
-# ========================================
-print("\n📌 TEST 2: Drug Extraction from Prescription Text")
-print("-" * 70)
+    def test_blacklisted_words_excluded(self):
+        result = correct_drug_list(["pain", "for", "daily"])
+        self.assertEqual(result, [], "Blacklisted words should return empty list")
 
-test_prescriptions = [
-    "Patient should take ibuprofen 200mg daily",
-    "iboprofen and metaformin 500mg",
-    "paracetamol 650 mg for fever",
-]
 
-for prescription in test_prescriptions:
-    parsed = parse_prescription(prescription)
-    corrected = correct_drug_list(parsed["drugs"])
-    print(f"Input: '{prescription}'")
-    print(f"  → Extracted: {parsed['drugs']}")
-    print(f"  → Corrected: {corrected}")
-    print()
+class TestDrugExtraction(unittest.TestCase):
+    """Issue #8, #9 — parsing pipeline (structured and free-text)."""
 
-# ========================================
-# TEST 3: Condition Prediction
-# ========================================
-print("\n📌 TEST 3: Condition Prediction (Rule-Based)")
-print("-" * 70)
+    def test_freetext_ibuprofen(self):
+        parsed = parse_prescription("Patient should take ibuprofen 200mg daily")
+        corrected = correct_drug_list(parsed["drugs"])
+        self.assertIn("ibuprofen", corrected)
 
-test_drugs = [
-    (["ibuprofen"], ["pain", "inflammation"]),
-    (["metformin"], ["diabetes"]),
-    (["paracetamol"], ["fever", "pain"]),
-    (["ibuprofen", "metformin"], ["pain", "inflammation", "diabetes"]),
-]
+    def test_freetext_multi_drug_with_typos(self):
+        parsed = parse_prescription("iboprofen and metaformin 500mg")
+        corrected = correct_drug_list(parsed["drugs"])
+        self.assertIn("ibuprofen", corrected)
+        self.assertIn("metformin", corrected)
 
-for drugs, expected_conditions in test_drugs:
-    predictions = mapper.predict(drugs)
-    predicted_conditions = [p["condition_label"] for p in predictions]
-    
-    # Check if all expected conditions are present
-    all_found = all(cond in predicted_conditions for cond in expected_conditions)
-    status = "✅ PASS" if all_found else "⚠️  PARTIAL"
-    
-    print(f"{status}: {drugs}")
-    print(f"  → Expected: {expected_conditions}")
-    print(f"  → Got: {predicted_conditions}")
-    print()
+    def test_freetext_paracetamol(self):
+        parsed = parse_prescription("paracetamol 650 mg for fever")
+        corrected = correct_drug_list(parsed["drugs"])
+        self.assertIn("paracetamol", corrected)
 
-# ========================================
-# TEST 4: Vector Store Metadata
-# ========================================
-print("\n📌 TEST 4: Vector Store — Metadata Preservation")
-print("-" * 70)
+    def test_hyphenated_drug_not_destroyed(self):
+        """Issue #7 — hyphens must survive the token cleaning regex."""
+        from preprocessing.parser import extract_drug_names
+        result = extract_drug_names(["co-amoxiclav 625mg"])
+        # The hyphenated token should be kept intact, not split or stripped
+        self.assertIn("co-amoxiclav", result)
 
-store = VectorStore()
 
-# Add test vectors with metadata
-metadata1 = {"drugs": ["ibuprofen"], "conditions": ["pain"], "original_text": "ibuprofen 200mg"}
-metadata2 = {"drugs": ["metformin"], "conditions": ["diabetes"], "original_text": "metformin 500mg"}
+class TestConditionPrediction(unittest.TestCase):
+    """Issue #10 — condition mapper returns correct clinical labels."""
 
-store.add(np.array([1.0, 0.0, 0.0]), metadata1)
-store.add(np.array([0.9, 0.1, 0.0]), metadata2)
+    def setUp(self):
+        self.mapper = ConditionMapper()
 
-# Search for similar
-results = store.search(np.array([1.0, 0.0, 0.0]), top_k=2, threshold=0.5)
+    def test_ibuprofen_predicts_pain_and_inflammation(self):
+        predictions = self.mapper.predict(["ibuprofen"])
+        labels = [p["condition_label"] for p in predictions]
+        self.assertIn("pain", labels)
+        self.assertIn("inflammation", labels)
 
-print(f"Added 2 vectors with metadata")
-print(f"Search results count: {len(results)}")
-for meta, score in results:
-    print(f"  • Drugs: {meta['drugs']}, Score: {score:.3f}")
+    def test_metformin_predicts_diabetes(self):
+        predictions = self.mapper.predict(["metformin"])
+        labels = [p["condition_label"] for p in predictions]
+        self.assertIn("diabetes", labels)
 
-status = "✅ PASS" if len(results) == 2 else "❌ FAIL"
-print(f"{status}: Metadata preserved in search results\n")
+    def test_paracetamol_predicts_fever_and_pain(self):
+        predictions = self.mapper.predict(["paracetamol"])
+        labels = [p["condition_label"] for p in predictions]
+        self.assertIn("fever", labels)
+        self.assertIn("pain", labels)
 
-# ========================================
-# TEST 5: Full Pipeline (Parse → Predict)
-# ========================================
-print("\n📌 TEST 5: Full Pipeline — Parse to Prediction")
-print("-" * 70)
+    def test_multi_drug_prediction(self):
+        predictions = self.mapper.predict(["ibuprofen", "metformin"])
+        labels = [p["condition_label"] for p in predictions]
+        self.assertIn("pain", labels)
+        self.assertIn("diabetes", labels)
 
-pipeline_tests = [
-    "iboprofen 200mg and metaformin 500mg",
-    "paracetamol 650 mg",
-    "Patient takes ibuprofen daily",
-]
+    def test_prediction_has_source_field(self):
+        """Issue #6 — every result must have an explicit 'source' field."""
+        predictions = self.mapper.predict(["ibuprofen"])
+        for pred in predictions:
+            self.assertIn("source", pred, "Each prediction must have a 'source' field")
+            self.assertIn(pred["source"], {"rule-based", "vector", "both"})
 
-for prescription in pipeline_tests:
-    print(f"Input: '{prescription}'")
-    
-    # Step 1: Parse
-    parsed = parse_prescription(prescription)
-    print(f"  1️⃣  Parsed drugs: {parsed['drugs']}")
-    
-    # Step 2: Correct (fuzzy match)
-    corrected = correct_drug_list(parsed['drugs'])
-    print(f"  2️⃣  Corrected drugs: {corrected}")
-    
-    # Step 3: Predict conditions
-    predictions = mapper.predict(corrected)
-    conditions = [p["condition_label"] for p in predictions]
-    print(f"  3️⃣  Predicted conditions: {conditions}")
-    
-    status = "✅ SUCCESS" if len(conditions) > 0 else "⚠️  NO CONDITIONS"
-    print(f"  {status}\n")
+    def test_unknown_drug_returns_empty(self):
+        predictions = self.mapper.predict(["xyzunknowndrug99"])
+        self.assertEqual(predictions, [])
 
-# ========================================
-# SUMMARY
-# ========================================
-print("\n" + "=" * 70)
-print("🎯 TEST SUMMARY")
-print("=" * 70)
-print("✅ Fuzzy matching detects typos (iboprofen → ibuprofen)")
-print("✅ Drug extraction from text works")
-print("✅ Condition prediction returns clinical conditions (not classes)")
-print("✅ Vector metadata is preserved during search")
-print("✅ Full pipeline: Parse → Correct → Predict → Output")
-print("\n🚀 All systems operational!\n")
+
+class TestVectorStore(unittest.TestCase):
+    """Issue #5 — threshold must be respected; metadata must be preserved."""
+
+    def setUp(self):
+        self.store = VectorStore()
+        self.store.add(np.array([1.0, 0.0, 0.0]), {"drugs": ["ibuprofen"], "conditions": ["pain"]})
+        self.store.add(np.array([0.9, 0.1, 0.0]), {"drugs": ["metformin"], "conditions": ["diabetes"]})
+
+    def test_metadata_preserved(self):
+        results = self.store.search(np.array([1.0, 0.0, 0.0]), top_k=2, threshold=0.5)
+        self.assertEqual(len(results), 2)
+        drugs_in_results = [meta["drugs"][0] for meta, _ in results]
+        self.assertIn("ibuprofen", drugs_in_results)
+
+    def test_threshold_respected_no_fallback(self):
+        """Issue #5 — very high threshold should return empty, not junk results."""
+        results = self.store.search(np.array([1.0, 0.0, 0.0]), top_k=2, threshold=0.999)
+        # Only the perfect match [1.0, 0.0, 0.0] dot [1.0, 0.0, 0.0] = 1.0 passes
+        self.assertEqual(len(results), 1)
+
+    def test_zero_similarity_returns_empty(self):
+        """Orthogonal vector should match nothing at a reasonable threshold."""
+        results = self.store.search(np.array([0.0, 0.0, 1.0]), top_k=2, threshold=0.5)
+        self.assertEqual(results, [])
+
+    def test_scores_are_python_float(self):
+        """Scores must be plain Python floats (not np.float32) for JSON serialisation."""
+        results = self.store.search(np.array([1.0, 0.0, 0.0]), top_k=1, threshold=0.5)
+        for _, score in results:
+            self.assertIsInstance(score, float)
+
+
+class TestFullPipeline(unittest.TestCase):
+    """Issue #5/#8 — full Parse → Correct → Predict pipeline."""
+
+    def setUp(self):
+        self.mapper = ConditionMapper()
+
+    def _run(self, prescription):
+        parsed = parse_prescription(prescription)
+        corrected = correct_drug_list(parsed["drugs"])
+        predictions = self.mapper.predict(corrected)
+        return corrected, predictions
+
+    def test_typo_prescription_predicts_conditions(self):
+        corrected, predictions = self._run("iboprofen 200mg and metaformin 500mg")
+        self.assertIn("ibuprofen", corrected)
+        self.assertIn("metformin", corrected)
+        self.assertTrue(len(predictions) > 0, "Should predict at least one condition")
+
+    def test_single_drug(self):
+        _, predictions = self._run("paracetamol 650 mg")
+        labels = [p["condition_label"] for p in predictions]
+        self.assertIn("fever", labels)
+
+    def test_natural_language_input(self):
+        corrected, predictions = self._run("Patient takes ibuprofen daily")
+        self.assertIn("ibuprofen", corrected)
+        self.assertTrue(len(predictions) > 0)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
