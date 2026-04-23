@@ -61,7 +61,7 @@ STOPWORDS = {
     "all", "also", "may", "can", "should", "will", "not", "both",
     "per", "use", "used", "using", "add", "added", "new", "start",
     "day", "days", "week", "weeks", "month", "months",
-    "back", "well", "good", "better", "worse", "time", "times",
+    "back", "well", "good", "better", "worse", "time", "times","mood", "energy", "appetite", "weight", "weight loss", "weight gain",
 }
 
 

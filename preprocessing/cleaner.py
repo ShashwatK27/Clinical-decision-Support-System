@@ -10,13 +10,13 @@ STOPWORDS = {
 
 
 MEDICAL_UNITS = {
-    # Weights/Volumes
+    
     "mg", "ml", "g", "mcg", "kg", "units", "iu", "percentage",
-    # Forms
+    
     "tablet", "tablets", "tab", "capsule", "capsules", "cap", 
     "syrup", "suspension", "ointment", "cream", "gel", "injection",
     "solution", "spray", "puffs", "inhaler", "drops",
-    # Quantities
+    
     "box", "pack", "strip", "bottle"
 }
 
