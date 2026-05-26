@@ -109,7 +109,7 @@ export default function ProductShowcase() {
               letterSpacing: "var(--letter-spacing-tight)"
             }}
           >
-            Primary CDSS Technology Modules
+            Primary MediIntel Technology Modules
           </h2>
           <div 
             style={{

@@ -48,12 +48,21 @@ export default function Navbar() {
             color: "var(--text-primary)", 
             display: "flex", 
             alignItems: "center",
-            gap: "8px",
+            gap: "12px",
             letterSpacing: "var(--letter-spacing-tight)"
           }}
-          aria-label="CDSS AI Home"
+          aria-label="MediIntel Home"
         >
-          <span style={{ color: "var(--accent-primary)" }}>CDSS</span> AI
+          <img 
+            src="/logo-emblem.png" 
+            alt="MediIntel Logo" 
+            style={{ 
+              height: "70px", 
+              width: "auto",
+              objectFit: "contain"
+            }} 
+          />
+          <span>MediIntel</span>
         </Link>
 
         {/* Desktop Navigation Links */}

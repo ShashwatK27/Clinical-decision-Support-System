@@ -156,7 +156,7 @@ function PrescriptionCard({ isScanning, laserRef }: { isScanning: boolean; laser
         }}>
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(6, 182, 212, 0.3)", paddingBottom: 3 }}>
-            <span style={{ fontWeight: 800, color: "#06b6d4", fontSize: 9, letterSpacing: 0.8 }}>CDSS RX INTAKE v3.0</span>
+            <span style={{ fontWeight: 800, color: "#06b6d4", fontSize: 9, letterSpacing: 0.8 }}>MEDIINTEL RX INTAKE v3.0</span>
             <span style={{ color: "#10b981", fontWeight: 700, fontSize: 8 }}>● ONLINE</span>
           </div>
 

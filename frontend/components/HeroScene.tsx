@@ -11,7 +11,7 @@ function PrescriptionCard() {
       <Html position={[0, 0, 0.09]} center>
         <div style={{ width: 260, padding: 18, borderRadius: 20, background: "rgba(255,255,255,0.92)", boxShadow: "0 30px 90px rgba(15, 23, 42, 0.18)", color: "#0f172a" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontWeight: 700, fontSize: 14, color: "#1d4ed8" }}>CDSS RX</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: "#1d4ed8" }}>MEDIINTEL RX</span>
             <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#34d399" }} />
           </div>
           <div style={{ marginBottom: 14 }}>

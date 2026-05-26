@@ -144,7 +144,7 @@ export default function Hero() {
                 display: "inline-flex",
                 alignItems: "center"
               }}
-              aria-label="Launch CDSS Clinician Predictor Console"
+              aria-label="Launch MediIntel Clinician Predictor Console"
             >
               Get Started Now
             </Link>
@@ -222,7 +222,7 @@ export default function Hero() {
           >
             {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(47, 216, 213, 0.2)", paddingBottom: "10px" }}>
-              <span style={{ fontWeight: 800, color: "var(--accent-primary)", fontSize: "11px", letterSpacing: "0.05em" }}>CDSS SECURE RX</span>
+              <span style={{ fontWeight: 800, color: "var(--accent-primary)", fontSize: "11px", letterSpacing: "0.05em" }}>MEDIINTEL SECURE RX</span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                 <span className="pulse-dot" style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--accent-primary)", boxShadow: "0 0 10px var(--accent-primary)" }} />
                 <span style={{ fontSize: "9px", fontWeight: 700, color: "var(--accent-primary)" }}>LIVE DATA</span>
@@ -231,7 +231,7 @@ export default function Hero() {
 
             {/* Details */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px", color: "var(--neutral)", fontSize: "10px" }}>
-              <div><strong style={{ color: "var(--text-primary)" }}>PATIENT:</strong> MS-790-CDSS</div>
+              <div><strong style={{ color: "var(--text-primary)" }}>PATIENT:</strong> MS-790-MEDIINTEL</div>
               <div><strong style={{ color: "var(--text-primary)" }}>DIAGNOSIS:</strong> SYSTEM HYBRID VERIFIED</div>
             </div>
 

@@ -24,7 +24,7 @@ export default function LoginPage() {
       <NavBar />
       <main className="container" style={{ paddingTop: 40, paddingBottom: 40 }}>
         <section className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-          <h1 style={{ marginBottom: 12 }}>Sign in to CDSS</h1>
+          <h1 style={{ marginBottom: 12 }}>Sign in to MediIntel</h1>
           <p className="lead">Your secure clinician account to manage prescriptions, history, and AI insights.</p>
           <form onSubmit={handleSubmit}>
             <input

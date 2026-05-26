@@ -116,7 +116,7 @@ export default function Contact() {
               letterSpacing: "var(--letter-spacing-tight)"
             }}
           >
-            Request CDSS Integration
+            Request MediIntel Integration
           </h2>
           <p 
             style={{
@@ -136,14 +136,14 @@ export default function Contact() {
               <span style={{ fontSize: "28px" }} aria-hidden="true">🏢</span>
               <div>
                 <strong style={{ display: "block", fontSize: "16px", color: "var(--text-primary)" }}>Platform Lab</strong>
-                <span style={{ color: "var(--neutral)", fontSize: "15px" }}>CDSS AI Symmetrical Platform Core</span>
+                <span style={{ color: "var(--neutral)", fontSize: "15px" }}>MediIntel Symmetrical Platform Core</span>
               </div>
             </div>
             <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
               <span style={{ fontSize: "28px" }} aria-hidden="true">✉️</span>
               <div>
                 <strong style={{ display: "block", fontSize: "16px", color: "var(--text-primary)" }}>Support &amp; Licenses</strong>
-                <span style={{ color: "var(--neutral)", fontSize: "15px" }}>support@cdss-ai.com</span>
+                <span style={{ color: "var(--neutral)", fontSize: "15px" }}>support@mediintel.com</span>
               </div>
             </div>
 

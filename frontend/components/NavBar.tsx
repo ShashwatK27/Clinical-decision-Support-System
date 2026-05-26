@@ -4,8 +4,9 @@ export default function NavBar() {
   return (
     <header className="container" style={{ paddingTop: 20, paddingBottom: 20 }}>
       <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link href="/" style={{ fontSize: 22, fontWeight: 800, color: "#1d4ed8" }}>
-          CDSS AI
+        <Link href="/" style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "16px" }}>
+          <img src="/logo-emblem.png" alt="MediIntel Logo" style={{ height: "70px", width: "auto", objectFit: "contain" }} />
+          <span>MediIntel</span>
         </Link>
         <div style={{ display: "flex", gap: 16 }}>
           <Link href="/login" style={{ color: "#2563eb" }}>

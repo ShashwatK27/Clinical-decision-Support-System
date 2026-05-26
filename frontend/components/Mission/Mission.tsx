@@ -64,7 +64,7 @@ export default function Mission() {
               marginBottom: "32px"
             }}
           >
-            The CDSS Core Mission
+            The MediIntel Core Mission
           </span>
 
           <h2 

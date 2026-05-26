@@ -35,20 +35,20 @@ export default function Home() {
       <BackgroundScene />
       <Head>
         {/* Core SEO Meta */}
-        <title>CDSS Symmetrical AI — Next-Gen Clinical Decision Support &amp; Analytics</title>
+        <title>MediIntel — Next-Gen Clinical Decision Support &amp; Analytics</title>
         <meta name="description" content="Pioneering Symmetrical Clinical Decision Support. Discover our intelligent handwritten prescription OCR intake core, molecular drug interaction mapping networks, and semantic condition predictors." />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="robots" content="index, follow" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="CDSS Symmetrical AI — Next-Gen Clinical Decision Support &amp; Analytics" />
+        <meta property="og:title" content="MediIntel — Next-Gen Clinical Decision Support &amp; Analytics" />
         <meta property="og:description" content="Intelligent handwritten prescription OCR intakes, molecular interaction maps, and instant clinical condition predictions." />
         <meta property="og:image" content="/products/glucowave.webp" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="CDSS Symmetrical AI — Next-Gen Clinical Decision Support &amp; Analytics" />
+        <meta name="twitter:title" content="MediIntel — Next-Gen Clinical Decision Support &amp; Analytics" />
         <meta name="twitter:description" content="Continuous diagnostic support systems and interaction warning matrices." />
         
         {/* Favicon */}
@@ -68,10 +68,10 @@ export default function Home() {
               "@graph": [
                 {
                   "@type": "MedicalOrganization",
-                  "@id": "https://www.cdss-ai.com/#organization",
-                  "name": "CDSS Symmetrical AI",
-                  "url": "https://www.cdss-ai.com",
-                  "logo": "https://www.cdss-ai.com/logo.png",
+                  "@id": "https://www.mediintel.com/#organization",
+                  "name": "MediIntel Symmetrical AI",
+                  "url": "https://www.mediintel.com",
+                  "logo": "https://www.mediintel.com/logo.png",
                   "description": "Next-generation Symmetrical Clinical Decision Support System and interaction warning console.",
                   "address": {
                     "@type": "PostalAddress",
@@ -80,15 +80,15 @@ export default function Home() {
                   },
                   "contactPoint": {
                     "@type": "ContactPoint",
-                    "email": "support@cdss-ai.com",
+                    "email": "support@mediintel.com",
                     "contactType": "clinician support"
                   }
                 },
                 {
                   "@type": "MedicalWebPage",
-                  "@id": "https://www.cdss-ai.com/#webpage",
-                  "url": "https://www.cdss-ai.com",
-                  "name": "CDSS Diagnostics & Decision Analytics Hub",
+                  "@id": "https://www.mediintel.com/#webpage",
+                  "url": "https://www.mediintel.com",
+                  "name": "MediIntel Diagnostics & Decision Analytics Hub",
                   "about": [
                     {
                       "@type": "MedicalDevice",
@@ -143,7 +143,7 @@ export default function Home() {
       >
         <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto", display: "grid", gap: "16px" }}>
           <div>
-            &copy; {new Date().getFullYear()} MediSensonic. All rights reserved. Clinical support tools powered by CDSS Intelligence.
+            &copy; {new Date().getFullYear()} MediIntel. All rights reserved. Clinical support tools powered by MediIntel Intelligence.
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: "24px", fontSize: "13px" }}>
             <a href="#about" className="nav-link">About</a>
