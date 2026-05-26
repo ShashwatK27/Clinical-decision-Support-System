@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: cdss
+      POSTGRES_PASSWORD: cdss
+      POSTGRES_DB: cdss
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://cdss:cdss@db:5432/cdss
+      SECRET_KEY: replace-with-a-secure-key
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      - db
+
+volumes:
+  db_data:

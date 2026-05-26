@@ -17,3 +17,16 @@ requests>=2.31.0
 # Utilities
 python-dotenv>=1.0.0
 fpdf2>=2.7.0
+
+# Web API and database
+fastapi>=0.101.1
+uvicorn[standard]>=0.23.2
+sqlalchemy>=2.0.20
+psycopg2-binary>=2.9.10
+python-jose>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+
+# OCR
+pillow>=10.0.0
+pytesseract>=0.3.11

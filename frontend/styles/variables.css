@@ -1,0 +1,40 @@
+:root {
+  /* Color Palette */
+  --bg-primary: rgb(18, 18, 20);
+  --bg-secondary: rgb(35, 38, 44);
+  --text-primary: #FAFAFA;
+  --text-secondary: #FAFAFAEB;
+  --accent-primary: #2FD8D5;
+  --accent-soft: #8AE6E3;
+  --neutral: #8B95A7;
+  --white: #FFFFFF;
+  --black: #111111;
+
+  /* Glassmorphism Styles */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg-hover: rgba(255, 255, 255, 0.06);
+  --glass-blur: blur(30px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-border-hover: 1px solid rgba(255, 255, 255, 0.16);
+  --glass-radius: 24px;
+  --glass-radius-lg: 32px;
+  --glass-shadow: 0 30px 90px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* Typography Hierarchy */
+  --font-h1: clamp(42px, 6vw, 84px);
+  --font-h2: clamp(32px, 4vw, 56px);
+  --font-h3: clamp(22px, 2.5vw, 32px);
+  --font-body: clamp(16px, 1.2vw, 19px);
+  --font-small: clamp(13px, 0.9vw, 15px);
+  
+  /* Font Family & Letter Spacing */
+  --font-sans: 'Inter', 'Manrope', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0em;
+
+  /* Spacing Base */
+  --spacing-base: 8px;
+  --section-spacing: clamp(80px, 10vw, 160px);
+  --container-max-width: 1440px;
+  --content-max-width: 1200px;
+}

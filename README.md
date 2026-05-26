@@ -296,6 +296,53 @@ Or more simply:
 - add persistent audit logging and user authentication
 - expose the workflow through a REST API
 
+## New Backend and Frontend Scaffold
+
+This repository now includes a FastAPI backend and React/Next.js starter frontend.
+
+### Run the backend locally
+
+1. Copy `.env.example` to `.env` and update values.
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Start the API:
+
+```bash
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Run the frontend locally
+
+1. Change into the frontend directory:
+
+```bash
+cd frontend
+```
+
+2. Install frontend dependencies:
+
+```bash
+npm install
+```
+
+3. Start the Next.js app:
+
+```bash
+npm run dev
+```
+
+### Docker compose
+
+Run the full backend + PostgreSQL stack with:
+
+```bash
+docker compose up --build
+```
+
 ## Disclaimer
 
 This project is for educational, research, and prototype use only. It is not a certified medical device and must not be used as a substitute for qualified clinical judgement.
